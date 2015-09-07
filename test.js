@@ -1,7 +1,13 @@
 var assert = require('assert');
-var pam = require('./build/Release/authenticate_pam');
+var pam = require('./');
 
-pam.authenticate(process.argv[2], process.argv[3],
+console.log(pam.getUserList());
+
+var username = process.argv[2];
+var password = process.argv[3];
+
+console.log('try to authenticate with', username, password);
+pam.authenticate(username, password,
 	function(err) {
 		if(err) {
 			console.log("Login failure: " + err)
