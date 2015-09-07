@@ -29,6 +29,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <security/pam_appl.h>
 
+#include <pwd.h>
+#include <sys/types.h>
+
 using namespace v8;
 
 struct auth_context {
@@ -169,9 +172,38 @@ NAN_METHOD(Authenticate) {
 	NanReturnUndefined();
 }
 
+NAN_METHOD(GetUserList) {
+  NanScope();
+
+  uid_t uid;
+  struct passwd* pw;
+  int count = 0;
+
+  for (uid = 1500; uid < 2000; ++uid) {
+  	if ((pw = getpwuid(uid)) != NULL) {
+      ++count;
+    }
+  }
+
+  Local<Array> list = Array::New(count);
+
+  count = 0;
+  for (uid = 1500; uid < 2000; ++uid) {
+  	if ((pw = getpwuid(uid)) != NULL) {
+      list->Set(count++, String::New(pw->pw_name));
+    }
+  }
+
+  return scope.Close(list);
+}
+
+
 void init(Handle<Object> exports) {
 	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(Authenticate);
 	exports->Set(NanNew<String>("authenticate"), tpl->GetFunction());
+
+  Local<FunctionTemplate> getUserListTpl = NanNew<FunctionTemplate>(GetUserList);
+  exports->Set(NanNew<String>("getUserList"), getUserListTpl->GetFunction());
 }
 
 NODE_MODULE(authenticate_pam, init);
